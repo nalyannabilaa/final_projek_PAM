@@ -3,34 +3,28 @@
 import 'package:hive/hive.dart';
 import '../../models/expedition_model.dart';
 import '../../models/logbook_model.dart';
+import '../controllers/logbook_controller.dart';
 
 class ExpeditionRepository {
   static const String _boxName = 'expeditions_box';
 
-  // ✅ Buka box Hive
   Future<Box<ExpeditionModel>> _openBox() async {
     return await Hive.openBox<ExpeditionModel>(_boxName);
   }
-
-  // ✅ Tambah ekspedisi baru
   Future<void> addExpedition(ExpeditionModel expedition) async {
     final box = await _openBox();
     await box.put(expedition.expeditionId, expedition);
   }
 
-  // ✅ Ambil semua ekspedisi
   Future<List<ExpeditionModel>> getAllExpeditions() async {
     final box = await _openBox();
     return box.values.toList();
   }
-
-  // ✅ Ambil ekspedisi berdasarkan ID
   Future<ExpeditionModel?> getExpeditionById(int expeditionId) async {
     final box = await _openBox();
     return box.get(expeditionId);
   }
 
-  // ✅ Ambil ekspedisi berdasarkan ketua (leader)
   Future<List<ExpeditionModel>> getExpeditionsByLeader(int leaderId) async {
     final box = await _openBox();
     return box.values
@@ -38,7 +32,6 @@ class ExpeditionRepository {
         .toList();
   }
 
-  // ✅ Ambil ekspedisi aktif berdasarkan ketua
   Future<ExpeditionModel?> getActiveExpedition(int leaderId) async {
     final box = await _openBox();
     try {
@@ -51,7 +44,6 @@ class ExpeditionRepository {
     }
   }
 
-  // ✅ Ambil ekspedisi akan datang berdasarkan ketua
   Future<ExpeditionModel?> getUpcomingExpedition(int leaderId) async {
     final box = await _openBox();
     try {
@@ -65,18 +57,18 @@ class ExpeditionRepository {
     }
   }
 
-  // ✅ Update ekspedisi
   Future<void> updateExpedition(ExpeditionModel expedition) async {
     final box = await _openBox();
     await box.put(expedition.expeditionId, expedition);
   }
 
-  // ✅ Hapus ekspedisi
-  Future<void> deleteExpedition(int expeditionId) async {
-    final box = await _openBox();
-    await box.delete(expeditionId);
+Future<void> deleteExpedition(int expeditionId) async {
+  final box = await _openBox();
+  final expedition = box.get(expeditionId);
+  if (expedition == null) return;
 
-     // Hapus semua logbook yang terkait dengan ekspedisi ini
+  await box.delete(expeditionId);
+
   final logbookBox = await Hive.openBox<LogbookModel>('logbooks_box');
   final logsToDelete = logbookBox.values
       .where((log) => log.expeditionId == expeditionId.toString())
@@ -85,9 +77,8 @@ class ExpeditionRepository {
   for (var log in logsToDelete) {
     await logbookBox.delete(log.id);
   }
-  }
+}
 
-  // ✅ Cari ekspedisi berdasarkan nama atau lokasi
   Future<List<ExpeditionModel>> searchExpeditions(String query) async {
     final box = await _openBox();
     final lowerQuery = query.toLowerCase();
@@ -99,7 +90,6 @@ class ExpeditionRepository {
         .toList();
   }
 
-// ✅ Filter ekspedisi berdasarkan status
 Future<List<ExpeditionModel>> filterExpeditionsByStatus(
   int leaderId,
   String? status,
@@ -109,19 +99,16 @@ Future<List<ExpeditionModel>> filterExpeditionsByStatus(
       .where((expedition) => expedition.leaderId == leaderId)
       .toList();
 
-  // Jika status null atau 'semua', return semua
   if (status == null || status.toLowerCase() == 'semua') {
     return expeditions;
   }
 
-  // Filter berdasarkan status
   return expeditions
       .where((expedition) => 
           expedition.status.toLowerCase() == status.toLowerCase())
       .toList();
 }
 
-  // ✅ Kosongkan semua data ekspedisi
   Future<void> clearAllExpeditions() async {
     final box = await _openBox();
     await box.clear();

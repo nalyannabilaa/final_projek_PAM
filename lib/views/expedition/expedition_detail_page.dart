@@ -15,7 +15,7 @@ class ExpeditionDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor:const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A8273),
         title: Text(
@@ -33,18 +33,20 @@ class ExpeditionDetailPage extends StatelessWidget {
           children: [
             _buildHeaderCard(context),
             const SizedBox(height: 20),
-            _buildInfoSection('Lokasi', expedition.location, Icons.location_on),
+            _buildInfoSection('Lokasi', expedition.location, Colors.white, Icons.location_on),
             const SizedBox(height: 16),
             _buildInfoSection(
               'Tanggal',
               '${DateFormat('d MMM y').format(expedition.startDate)} - '
                   '${DateFormat('d MMM y').format(expedition.endDate)}',
+              Colors.white,
               Icons.calendar_today,
             ),
             const SizedBox(height: 16),
             _buildInfoSection(
               'Status Ekspedisi',
               expedition.status.toUpperCase(),
+              Colors.white,
               Icons.flag,
               color: _getStatusColor(expedition.status),
             ),
@@ -52,7 +54,6 @@ class ExpeditionDetailPage extends StatelessWidget {
             _buildBudgetSection(),
             const SizedBox(height: 30),
 
-            // 🔹 Tombol aksi di bawah detail
             _buildActionButtons(context),
           ],
         ),
@@ -103,13 +104,14 @@ class ExpeditionDetailPage extends StatelessWidget {
   Widget _buildInfoSection(
     String title,
     String value,
+    Color colorcard,
     IconData icon, {
     Color? color,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorcard,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -215,7 +217,6 @@ class ExpeditionDetailPage extends StatelessWidget {
     );
   }
 
-  // 🔹 Tambahan tombol aksi (edit & hapus)
   Widget _buildActionButtons(BuildContext context) {
     final controller = context.read<ExpeditionController>();
 

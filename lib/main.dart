@@ -40,8 +40,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationHelper.initialize();
   await NotificationHelper.showNotification(
-  title: 'Tes Notifikasi',
-  body: 'Jika kamu melihat ini, berarti sistem notifikasi sudah aktif!',
+  title: 'MAPALA Adventure Logbook',
+  body: 'Catat setiap langkah, abadikan setiap perjalanan',
 );
   runApp(const MyApp());
 }

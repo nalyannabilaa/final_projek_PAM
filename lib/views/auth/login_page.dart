@@ -35,7 +35,6 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = true;
     });
 
-    // Proses login akses hive
     final result = await LocalStorageService.loginUser(
       username: usernameC.text.trim(),
       password: passwordC.text,
@@ -45,13 +44,11 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = false;
     });
 
-    // Tampilkan hasil
     if (result['success']) {
-      // ✅ Simpan sesi login
       await SessionManager.saveUserSession(
         username: usernameC.text.trim(),
         leaderId:
-            result['leaderId'] ?? 1, // ambil ID user dari hasil login Hive
+            result['leaderId'] ?? 1, // 
       );
       CustomSnackbar.show(
         context,
@@ -149,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                   // Username Field
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color.fromARGB(255, 255, 255, 255),
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: const [
                         BoxShadow(
@@ -185,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                   // Password Field
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color.fromARGB(255, 255, 255, 255),
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: const [
                         BoxShadow(

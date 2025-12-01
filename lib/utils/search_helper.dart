@@ -2,7 +2,6 @@ import '../models/expedition_model.dart';
 import '../models/logbook_model.dart';
 
 /// Helper class untuk search functionality
-/// Bisa digunakan di berbagai halaman
 class SearchHelper {
   /// Search ekspedisi berdasarkan nama atau lokasi
   static List<ExpeditionModel> searchExpeditions(
@@ -24,25 +23,6 @@ class SearchHelper {
     }).toList();
   }
 
-  /// Search logbook berdasarkan title, content, atau location
-  static List<LogbookModel> searchLogbooks(
-    List<LogbookModel> logbooks,
-    String query,
-  ) {
-    if (query.isEmpty) return logbooks;
-
-    final lowerQuery = query.toLowerCase().trim();
-    
-    return logbooks.where((logbook) {
-      final title = logbook.title.toLowerCase();
-      final content = logbook.content.toLowerCase();
-      final location = logbook.location?.toLowerCase() ?? '';
-      
-      return title.contains(lowerQuery) ||
-             content.contains(lowerQuery) ||
-             location.contains(lowerQuery);
-    }).toList();
-  }
 
   /// Highlight matching text in search results
   static String highlightMatch(String text, String query) {

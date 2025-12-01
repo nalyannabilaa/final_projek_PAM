@@ -44,28 +44,4 @@ class NotificationHelper {
       details,
     );
   }
-
-  // 🔹 (Opsional) Jadwal notifikasi harian
-  static Future<void> scheduleDailyReminder() async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'daily_channel',
-      'Daily Reminders',
-      channelDescription: 'Pengingat harian untuk update logbook & cek anggaran',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails details =
-        NotificationDetails(android: androidDetails);
-
-    await _notificationsPlugin.periodicallyShow(
-      0,
-      'Cek Logbook Hari Ini',
-      'Jangan lupa update logbook dan pantau anggaran ekspedisi!',
-      RepeatInterval.daily,
-      details,
-      androidAllowWhileIdle: true,
-    );
-  }
 }

@@ -15,11 +15,15 @@ class UserModel extends HiveObject {
   @HiveField(3)
   DateTime createdAt;
 
+   @HiveField(4) // 
+  String? avatarPath;
+
   UserModel({
     required this.username,
     required this.email,
     required this.password,
     required this.createdAt,
+    this.avatarPath, 
   });
 
   // Convert to Map
@@ -29,6 +33,7 @@ class UserModel extends HiveObject {
       'email': email,
       'password': password,
       'createdAt': createdAt.toIso8601String(),
+      'avatarPath': avatarPath,
     };
   }
 
@@ -39,6 +44,7 @@ class UserModel extends HiveObject {
       email: map['email'],
       password: map['password'],
       createdAt: DateTime.parse(map['createdAt']),
+      avatarPath: map['avatarPath'],
     );
   }
 }

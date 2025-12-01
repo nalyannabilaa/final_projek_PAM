@@ -33,17 +33,15 @@ class _SplashPageState extends State<SplashPage> {
       if (!mounted) return;
 
       if (session != null &&
-          session['username'] != null &&
-          session['leaderId'] != null) {
+          session['username'] != null) {
         print(
-          'Session found: ${session['username']}, ${session['leaderId']}',
+          'Session found: ${session['username']}}',
         ); // Debug print
         Navigator.pushReplacementNamed(
           context,
           '/home',
           arguments: {
             'username': session['username'],
-            'leaderId': session['leaderId'],
           },
         );
       } else {

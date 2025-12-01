@@ -2,7 +2,9 @@
 // termasuk mengambil, menambah, memperbarui, menghapus, dan mencari data ekspedisi.
 import 'package:flutter/foundation.dart';
 import '../models/expedition_model.dart';
+import 'package:provider/provider.dart';
 import '../repositories/expedition_repository.dart';
+import 'logbook_controller.dart';
 
 class ExpeditionController extends ChangeNotifier {
   final ExpeditionRepository _repository = ExpeditionRepository();
@@ -19,6 +21,9 @@ class ExpeditionController extends ChangeNotifier {
   // ===== Getter =====
   List<ExpeditionModel> get expeditions => _expeditions;
   List<ExpeditionModel> get allExpeditions => _allExpeditions;
+  List<ExpeditionModel> get activeExpeditions => _allExpeditions
+    .where((e) => e.status.toLowerCase() == 'aktif')
+    .toList();
   ExpeditionModel? get activeExpedition => _activeExpedition;
   ExpeditionModel? get upcomingExpedition => _upcomingExpedition;
   bool get isLoading => _isLoading;
@@ -145,6 +150,8 @@ class ExpeditionController extends ChangeNotifier {
     };
   }
 
+  
+
   // ===== Tambah ekspedisi =====
   Future<void> addExpedition(ExpeditionModel expedition) async {
     _isLoading = true;
@@ -182,22 +189,26 @@ class ExpeditionController extends ChangeNotifier {
   }
 
   // ===== Hapus ekspedisi =====
-  Future<void> deleteExpedition(int expeditionId) async {
-    _isLoading = true;
-    notifyListeners();
+Future<void> deleteExpedition(int expeditionId) async {
+  _isLoading = true;
+  notifyListeners();
 
-    try {
-      await _repository.deleteExpedition(expeditionId);
-      _allExpeditions = await _repository.getAllExpeditions();
-      _applyFilter();
-      _errorMessage = null;
-    } catch (e) {
-      _errorMessage = 'Gagal menghapus ekspedisi: $e';
-    }
+  try {
+    await _repository.deleteExpedition(expeditionId);
 
+    // Refresh data ekspedisi
+    _allExpeditions = await _repository.getAllExpeditions();
+    _applyFilter();
+    
+
+    _errorMessage = null;
+  } catch (e) {
+    _errorMessage = 'Gagal menghapus: $e';
+  } finally {
     _isLoading = false;
     notifyListeners();
   }
+}
 
   // ===== Cari ekspedisi berdasarkan nama/lokasi =====
   Future<void> searchExpeditions(String query) async {

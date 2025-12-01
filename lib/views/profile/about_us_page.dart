@@ -147,7 +147,7 @@ class AboutUsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color.fromARGB(255, 255, 0, 0), //XXX
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
@@ -207,7 +207,7 @@ class AboutUsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color.fromARGB(231, 212, 255, 0), //XXX
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
@@ -294,7 +294,7 @@ class AboutUsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: const Color.fromARGB(255, 2, 56, 255).withOpacity(0.2), //XXX
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
       ),

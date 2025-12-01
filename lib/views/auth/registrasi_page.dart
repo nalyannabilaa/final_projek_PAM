@@ -20,7 +20,6 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
 
   Future<void> _register() async {
-    // Validasi semua field terisi
     if (usernameC.text.isEmpty ||
         emailC.text.isEmpty ||
         passwordC.text.isEmpty ||
@@ -32,7 +31,6 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // Validasi username minimal 3 karakter
     if (usernameC.text.length < 3) {
       _showSnackBar(
         "Username minimal 3 karakter!",
@@ -41,7 +39,6 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // Validasi email format
     if (!emailC.text.contains('@') || !emailC.text.contains('.')) {
       _showSnackBar(
         "Format email tidak valid!",
@@ -50,7 +47,6 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // Validasi password minimal 6 karakter
     if (passwordC.text.length < 6) {
       _showSnackBar(
         "Password minimal 6 karakter!",
@@ -59,7 +55,6 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // Validasi password dan konfirmasi password sama
     if (passwordC.text != confirmPasswordC.text) {
       _showSnackBar(
         "Password dan konfirmasi password tidak sama!",
@@ -68,12 +63,10 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // Set loading
     setState(() {
       _isLoading = true;
     });
 
-    // Proses registrasi
     final result = await LocalStorageService.registerUser(
       username: usernameC.text.trim(),
       email: emailC.text.trim(),
@@ -84,14 +77,12 @@ class _RegisterPageState extends State<RegisterPage> {
       _isLoading = false;
     });
 
-    // Tampilkan hasil
     if (result['success']) {
       _showSnackBar(
         result['message'],
         const Color(0xFF6EF780),
       );
 
-      // Kembali ke halaman login setelah 2 detik
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           Navigator.pop(context);
@@ -187,6 +178,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   _buildTextField(
                     controller: usernameC,
                     hintText: 'Username',
+                    colorcard: const Color.fromARGB(255, 255, 255, 255),
                     icon: Icons.person_outline,
                   ),
 
@@ -196,6 +188,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   _buildTextField(
                     controller: emailC,
                     hintText: 'Email',
+                    colorcard: const Color.fromARGB(255, 255, 255, 255),
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                   ),
@@ -207,6 +200,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: passwordC,
                     hintText: 'Password',
                     icon: Icons.lock_outline,
+                    colorcard: Colors.white,
                     isPassword: true,
                     obscureText: _obscurePassword,
                     onToggleVisibility: () {
@@ -223,6 +217,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: confirmPasswordC,
                     hintText: 'Konfirmasi Password',
                     icon: Icons.lock_outline,
+                    colorcard: Colors.white,
                     isPassword: true,
                     obscureText: _obscureConfirmPassword,
                     onToggleVisibility: () {
@@ -309,6 +304,7 @@ class _RegisterPageState extends State<RegisterPage> {
     required TextEditingController controller,
     required String hintText,
     required IconData icon,
+    required Color colorcard,
     bool isPassword = false,
     bool obscureText = false,
     VoidCallback? onToggleVisibility,
@@ -316,7 +312,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorcard,
         borderRadius: BorderRadius.circular(15),
         boxShadow: const [
           BoxShadow(

@@ -220,6 +220,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
             children: [
               _buildTextField(
                 controller: _nameController,
+                colorcard: const Color.fromARGB(255, 255, 255, 255),
                 label: 'Nama Ekspedisi',
                 hint: 'Contoh: Pendakian Gunung Semeru',
                 icon: Icons.hiking,
@@ -230,6 +231,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
               const SizedBox(height: 16),
               _buildTextField(
                 controller: _locationController,
+                colorcard: const Color.fromARGB(255, 255, 255, 255),
                 label: 'Lokasi',
                 hint: 'Contoh: Jawa Timur',
                 icon: Icons.location_on,
@@ -266,6 +268,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
               const SizedBox(height: 24),
               _buildTextField(
                 controller: _budgetController,
+                colorcard: const Color.fromARGB(255, 255, 255, 255),
                 label: 'Total Anggaran',
                 hint: '0',
                 icon: Icons.account_balance_wallet,
@@ -309,7 +312,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
                   margin: const EdgeInsets.only(top: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEBF5F1),
+                    color: const Color.fromARGB(255, 255, 255, 255),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -358,6 +361,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
     required String label,
     required String hint,
     required IconData icon,
+    required Color colorcard,
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
@@ -383,7 +387,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
             hintText: hint,
             prefixIcon: Icon(icon, color: const Color(0xFF4A8273)),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: colorcard,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -412,7 +416,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color.fromARGB(255, 255, 255, 255),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey[300]!),
             ),
@@ -460,7 +464,7 @@ class _AddExpeditionPageState extends State<AddExpeditionPage> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color.fromARGB(218, 255, 255, 255),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey[300]!),
           ),

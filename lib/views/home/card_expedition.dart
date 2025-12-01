@@ -17,43 +17,82 @@ class ExpeditionCardSection extends StatelessWidget {
     final expeditionController = context.watch<ExpeditionController>();
     final logbookController = context.watch<LogbookController>();
 
-    final expeditions = expeditionController.expeditions;
     final logbooks = logbookController.logbooks;
 
-    ExpeditionModel? activeExpedition;
-    ExpeditionModel? upcomingExpedition;
+    // 🔥 FIX: Prioritaskan ekspedisi yang dipilih user
+    ExpeditionModel? displayExpedition = logbookController.selectedExpedition;
 
-    try {
-      activeExpedition =
-          expeditions.firstWhere((e) => e.status.toLowerCase() == 'aktif');
-    } catch (_) {
-      activeExpedition = null;
+    // 🔥 Fallback jika tidak ada yang dipilih
+    if (displayExpedition == null) {
+      final expeditions = expeditionController.expeditions;
+      
+      try {
+        displayExpedition =
+            expeditions.firstWhere((e) => e.status.toLowerCase() == 'aktif');
+      } catch (_) {
+        try {
+          displayExpedition = expeditions.firstWhere(
+              (e) => e.status.toLowerCase() == 'akan datang');
+        } catch (_) {
+          displayExpedition = null;
+        }
+      }
     }
 
-    try {
-      upcomingExpedition =
-          expeditions.firstWhere((e) => e.status.toLowerCase() == 'akan datang');
-    } catch (_) {
-      upcomingExpedition = null;
+    // 🔥 Tentukan label berdasarkan status ekspedisi yang ditampilkan
+    String cardTitle;
+    if (displayExpedition == null) {
+      cardTitle = 'Belum Ada Ekspedisi';
+    } else if (displayExpedition.status.toLowerCase() == 'aktif') {
+      cardTitle = 'Ekspedisi Aktif';
+    } else if (displayExpedition.status.toLowerCase() == 'akan datang') {
+      cardTitle = 'Ekspedisi Terdekat';
+    } else if (displayExpedition.status.toLowerCase() == 'selesai') {
+      cardTitle = 'Ekspedisi Selesai';
+    } else {
+      cardTitle = 'Ekspedisi Terpilih';
     }
-
-    final displayExpedition = activeExpedition ?? upcomingExpedition;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            activeExpedition != null
-                ? 'Ekspedisi Aktif'
-                : upcomingExpedition != null
-                    ? 'Ekspedisi Terdekat'
-                    : 'Belum Ada Ekspedisi',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                cardTitle,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // 🔥 Indikator jika ada ekspedisi yang dipilih
+              if (logbookController.selectedExpedition != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A8273).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle, size: 14, color: Color(0xFF4A8273)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Dipilih',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF4A8273),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 12),
           if (displayExpedition != null)
@@ -65,7 +104,6 @@ class ExpeditionCardSection extends StatelessWidget {
     );
   }
 
-  /// 🔹 Ambil gambar terbaru dari logbook ekspedisi
   String? _getLatestLogbookImage(
       ExpeditionModel expedition, List<LogbookModel> logbooks) {
     final relatedLogs = logbooks
@@ -77,7 +115,7 @@ class ExpeditionCardSection extends StatelessWidget {
     relatedLogs.sort((a, b) => b.date.compareTo(a.date));
 
     if (relatedLogs.first.images.isNotEmpty) {
-      return relatedLogs.first.images.first; // bisa file path
+      return relatedLogs.first.images.first;
     }
 
     return null;
@@ -89,10 +127,19 @@ class ExpeditionCardSection extends StatelessWidget {
     List<LogbookModel> logbooks,
   ) {
     final isActive = expedition.status.toLowerCase() == 'aktif';
+    final isUpcoming = expedition.status.toLowerCase() == 'akan datang';
+    final isCompleted = expedition.status.toLowerCase() == 'selesai';
+    
+    // 🔥 Gradient berdasarkan status
     final gradient = isActive
         ? const [Color(0xFFE3DE61), Color(0xFF5DA290)]
-        : [Color(0xFFE3DE61), Color(0xFF5DA290)];
-    final textColor = isActive ? Colors.white : Colors.white;
+        : isUpcoming
+            ? const [Color(0xFFFFA500), Color(0xFFFF6347)]
+            : isCompleted
+                ? const [Color(0xFF6C757D), Color(0xFF495057)]
+                : const [Color(0xFFE3DE61), Color(0xFF5DA290)];
+    
+    const textColor = Colors.white;
 
     final imagePath = _getLatestLogbookImage(expedition, logbooks);
     final now = DateTime.now();
@@ -138,13 +185,38 @@ class ExpeditionCardSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    expedition.expeditionName,
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          expedition.expeditionName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                      ),
+                      // 🔥 Status badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          expedition.status.toUpperCase(),
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -165,10 +237,15 @@ class ExpeditionCardSection extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
+                  // 🔥 Info waktu yang lebih dinamis
                   Text(
                     isActive
                         ? 'Sisa $daysRemaining hari'
-                        : 'Mulai dalam $daysUntilStart hari',
+                        : isUpcoming
+                            ? 'Mulai dalam $daysUntilStart hari'
+                            : isCompleted
+                                ? 'Telah selesai'
+                                : 'Status: ${expedition.status}',
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       color: textColor.withOpacity(0.9),

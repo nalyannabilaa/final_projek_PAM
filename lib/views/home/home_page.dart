@@ -10,6 +10,7 @@ import '../../utils/search_helper.dart';
 import '../logbook/logbook_list.dart';
 import '../logbook/add_logbook_page.dart';
 import '../expedition/expedition_list_page.dart';
+import '../expedition/expedition_detail_page.dart';
 import 'card_expedition.dart';
 import '../../services/session_manager.dart';
 
@@ -40,26 +41,40 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
-    ExpeditionCardSection();
     });
   }
 
-
-
   Future<void> _loadData() async {
+    if (!mounted) return;
+    
     final logbookController = context.read<LogbookController>();
     final expeditionController = context.read<ExpeditionController>();
+    
     try {
       final session = await SessionManager.getUserSession();
       final username = session?['username'] ?? widget.username;
       final leaderId = session?['leaderId'] ?? widget.leaderId;
-          final selectedExpedition = logbookController.selectedExpedition;
-
+      
+      await expeditionController.loadExpeditions(leaderId);
+      
+      logbookController.validateAndClearIfDeleted(
+        expeditionController.allExpeditions,
+      );
+      
+      if (logbookController.selectedExpedition == null) {
+        final activeExp = expeditionController.activeExpedition;
+        if (activeExp != null) {
+          logbookController.setSelectedExpedition(activeExp);
+          await logbookController.loadLogbooksForSelected(username);
+        }
+      } else {
+        await logbookController.loadLogbooksForSelected(username);
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat data: $e')),
+        );
       }
     }
   }
@@ -83,8 +98,17 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Consumer2<LogbookController, ExpeditionController>(
           builder: (context, logbookCtrl, expeditionCtrl, _) {
-            final activeExpedition = logbookCtrl.selectedExpedition;
-            final recentLogbooks = logbookCtrl.logbooks.take(3).toList();
+            logbookCtrl.validateAndClearIfDeleted(expeditionCtrl.allExpeditions);
+            
+           final currentExpedition = logbookCtrl.selectedExpedition;
+            final validLogbooks = currentExpedition != null
+                ? logbookCtrl.logbooks
+                    .where((log) =>
+                        log.expeditionId == currentExpedition.expeditionId.toString())
+                    .toList()
+                : <LogbookModel>[];
+            
+            final recentLogbooks = validLogbooks.take(3).toList();
 
             // Search results
             final searchQuery = _searchController.text;
@@ -113,7 +137,10 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 16),
                       ExpeditionCardSection(),
                       const SizedBox(height: 24),
-                      _buildLogbookSection(recentLogbooks, activeExpedition),
+                      _buildLogbookSection(
+                        recentLogbooks,
+                        currentExpedition,
+                      ),
                       const SizedBox(height: 24),
                       _buildMotivationalQuote(),
                       const SizedBox(height: 24),
@@ -291,7 +318,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 onTap: () {
-                  // Navigate to expedition detail
+                                    Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ExpeditionDetailPage(
+                        expedition: expedition,
+                      ),
+                    ),
+                  );
                 },
               ),
             );
@@ -301,10 +335,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
+  // 🔥 UPDATE: Logbook section dengan validasi
   Widget _buildLogbookSection(
     List<LogbookModel> logbooks,
-    dynamic activeExpedition,
+    dynamic currentExpedition,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,12 +373,15 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 12),
+        
         if (logbooks.isEmpty)
-           LogbookList(logbooks: logbooks)
+          _buildEmptyLogbookCard()
         else
           LogbookList(logbooks: logbooks),
+        
         const SizedBox(height: 16),
-        if (activeExpedition != null)
+        
+        if (currentExpedition != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: CustomButton(
@@ -361,14 +398,14 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => AddLogbookPage(
-                      expeditionId: activeExpedition.expeditionId.toString(),
+                      expeditionId: currentExpedition.expeditionId.toString(),
                       username: widget.username,
                     ),
                   ),
                 ).then((_) => _loadData());
               },
             ),
-          ),
+          )
       ],
     );
   }

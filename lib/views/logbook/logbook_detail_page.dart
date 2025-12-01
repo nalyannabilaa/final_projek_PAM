@@ -41,18 +41,21 @@ class LogbookDetailPage extends StatelessWidget {
               'Tanggal & Waktu',
               DateFormat('EEEE, d MMM y - HH:mm', 'id_ID').format(logbook.date),
               Icons.access_time,
+              const Color.fromARGB(255, 255, 255, 255)!,
             ),
             const SizedBox(height: 16),
             _buildInfoSection(
               'Lokasi',
               '${logbook.location} (${logbook.latitude?.toStringAsFixed(4)}, ${logbook.longitude?.toStringAsFixed(4)})',
               Icons.location_on,
+              const Color.fromARGB(255, 255, 255, 255)
             ),
             const SizedBox(height: 16),
             _buildInfoSection(
               'Kondisi Cuaca',
               logbook.weather ?? '-',
               Icons.cloud,
+              const Color.fromARGB(255, 255, 255, 255)
             ),
             const SizedBox(height: 16),
             _buildInfoSection(
@@ -61,18 +64,19 @@ class LogbookDetailPage extends StatelessWidget {
                   ? '${logbook.elevation!.toStringAsFixed(1)} mdpl'
                   : '-',
               Icons.terrain,
+              const Color.fromARGB(255, 255, 255, 255)
             ),
             const SizedBox(height: 16),
             _buildBudgetSection(context),
             const SizedBox(height: 16),
-            _buildInfoSection('Isi Catatan', logbook.content, Icons.note),
+            _buildInfoSection('Isi Catatan', logbook.content, Icons.note, const Color.fromARGB(255, 255, 255, 255)),
             if ((logbook.obstacle?.isNotEmpty ?? false)) ...[
               const SizedBox(height: 16),
-              _buildInfoSection('Kendala', logbook.obstacle!, Icons.warning),
+              _buildInfoSection('Kendala', logbook.obstacle!, Icons.warning, const Color.fromARGB(255, 255, 255, 255)),
             ],
             if ((logbook.suggestion?.isNotEmpty ?? false)) ...[
               const SizedBox(height: 16),
-              _buildInfoSection('Saran / Evaluasi', logbook.suggestion!, Icons.lightbulb),
+              _buildInfoSection('Saran / Evaluasi', logbook.suggestion!, Icons.lightbulb, const Color.fromARGB(255, 255, 255, 255)),
             ],
             if (logbook.images.isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -128,11 +132,11 @@ class LogbookDetailPage extends StatelessWidget {
   }
 
   // 🔹 INFO SECTION
-  Widget _buildInfoSection(String title, String value, IconData icon) {
+  Widget _buildInfoSection(String title, String value, IconData icon, Color colorcard) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorcard,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -183,7 +187,7 @@ class LogbookDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.grey[300]!),
         boxShadow: [

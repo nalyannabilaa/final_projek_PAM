@@ -27,7 +27,6 @@ class CustomAppBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // ✅ TAMBAHKAN: Expanded untuk mencegah overflow
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

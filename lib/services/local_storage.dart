@@ -1,5 +1,3 @@
-//digunakan untuk mengelola penyimpanan lokal data pengguna menggunakan Hive,
-// termasuk registrasi, login, logout, dan pengambilan data user.
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/user_model.dart';
 import 'package:crypto/crypto.dart';
@@ -9,7 +7,7 @@ import 'session_manager.dart';
 class LocalStorageService {
   static const String _userBoxName = 'users';
 
-  // ✅ Initialize Hive
+  // Initialize Hive
   static Future<void> init() async {
     await Hive.initFlutter();
 
@@ -20,19 +18,19 @@ class LocalStorageService {
     await Hive.openBox<UserModel>(_userBoxName);
   }
 
-  // ✅ Get user box
+  // Get user box
   static Box<UserModel> getUserBox() {
     return Hive.box<UserModel>(_userBoxName);
   }
 
-  // ✅ Hash password (SHA256)
+  // Hash password (SHA256)
   static String hashPassword(String password) {
     var bytes = utf8.encode(password);
     var digest = sha256.convert(bytes);
     return digest.toString();
   }
 
-  // ✅ Register user baru
+  // Register user baru
   static Future<Map<String, dynamic>> registerUser({
     required String username,
     required String email,
@@ -94,7 +92,7 @@ class LocalStorageService {
     }
   }
 
-  // ✅ Login user
+  // Login user
   static Future<Map<String, dynamic>> loginUser({
     required String username,
     required String password,
@@ -120,10 +118,9 @@ class LocalStorageService {
         return {'success': false, 'message': 'Password salah!'};
       }
 
-      // ✅ Simpan session ke Shared Preferences
       await SessionManager.saveUserSession(
         username: user.username,
-        leaderId: user.key ?? 1, // gunakan key Hive sebagai ID unik user
+        leaderId: user.key ?? 1, 
       );
 
       return {
@@ -137,18 +134,150 @@ class LocalStorageService {
     }
   }
 
-  // ✅ Logout user (hapus sesi)
   static Future<void> logoutUser() async {
     await SessionManager.clearSession();
   }
 
-  // ✅ Ambil semua user
+  //avatar
+  static Future<Map<String, dynamic>> updateUserAvatar({
+    required String username,
+    required String avatarPath,
+  }) async {
+    try {
+      final userBox = getUserBox();
+      
+      // Cari user berdasarkan username
+      final userKey = userBox.keys.firstWhere(
+        (key) {
+          final user = userBox.get(key);
+          return user?.username.toLowerCase() == username.toLowerCase();
+        },
+        orElse: () => null,
+      );
+
+      if (userKey == null) {
+        return {'success': false, 'message': 'User tidak ditemukan!'};
+      }
+
+      // Update avatar path
+      final user = userBox.get(userKey);
+      if (user != null) {
+        user.avatarPath = avatarPath;
+        await user.save(); // Simpan perubahan
+        await userBox.flush();
+        
+        return {
+          'success': true,
+          'message': 'Avatar berhasil diperbarui!',
+          'user': user,
+        };
+      }
+
+      return {'success': false, 'message': 'Gagal memperbarui avatar!'};
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan: $e'};
+    }
+  }
+
+  // Update profile user (username, email, avatar)
+  static Future<Map<String, dynamic>> updateUserProfile({
+    required String currentUsername,
+    String? newUsername,
+    String? newEmail,
+    String? avatarPath,
+  }) async {
+    try {
+      final userBox = getUserBox();
+      
+      // Cari user berdasarkan username
+      final userKey = userBox.keys.firstWhere(
+        (key) {
+          final user = userBox.get(key);
+          return user?.username.toLowerCase() == currentUsername.toLowerCase();
+        },
+        orElse: () => null,
+      );
+
+      if (userKey == null) {
+        return {'success': false, 'message': 'User tidak ditemukan!'};
+      }
+
+      final user = userBox.get(userKey);
+      if (user != null) {
+        // Update fields yang diberikan
+        if (newUsername != null && newUsername.isNotEmpty) {
+          // Cek apakah username baru sudah digunakan
+          final existingUser = userBox.values.firstWhere(
+            (u) => u.username.toLowerCase() == newUsername.toLowerCase() && 
+                   u.username.toLowerCase() != currentUsername.toLowerCase(),
+            orElse: () => UserModel(
+              username: '',
+              email: '',
+              password: '',
+              createdAt: DateTime.now(),
+            ),
+          );
+          
+          if (existingUser.username.isNotEmpty) {
+            return {'success': false, 'message': 'Username sudah digunakan!'};
+          }
+          
+          user.username = newUsername;
+          
+          // Update session juga
+          await SessionManager.saveUserSession(
+            username: newUsername,
+            leaderId: userKey as int,
+          );
+        }
+        
+        if (newEmail != null && newEmail.isNotEmpty) {
+          // Cek apakah email baru sudah digunakan
+          final existingEmail = userBox.values.firstWhere(
+            (u) => u.email.toLowerCase() == newEmail.toLowerCase() && 
+                   u.email.toLowerCase() != user.email.toLowerCase(),
+            orElse: () => UserModel(
+              username: '',
+              email: '',
+              password: '',
+              createdAt: DateTime.now(),
+            ),
+          );
+          
+          if (existingEmail.email.isNotEmpty) {
+            return {'success': false, 'message': 'Email sudah terdaftar!'};
+          }
+          
+          user.email = newEmail;
+        }
+        
+        if (avatarPath != null) {
+          user.avatarPath = avatarPath;
+        }
+
+        await user.save();
+        await userBox.flush();
+        
+        return {
+          'success': true,
+          'message': 'Profil berhasil diperbarui!',
+          'user': user,
+        };
+      }
+
+      return {'success': false, 'message': 'Gagal memperbarui profil!'};
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan: $e'};
+    }
+  }
+
+  // Ambil semua user
   static List<UserModel> getAllUsers() {
     final userBox = getUserBox();
     return userBox.values.toList();
   }
 
-  // ✅ Hapus user
+  // Hapus user
   static Future<bool> deleteUser(String username) async {
     try {
       final userBox = getUserBox();
@@ -167,7 +296,7 @@ class LocalStorageService {
     }
   }
 
-  // ✅ Hapus semua data (debug)
+  // Hapus semua data (debug)
   static Future<void> clearAllData() async {
     if (!Hive.isBoxOpen(_userBoxName)) {
       await Hive.openBox<UserModel>(_userBoxName);

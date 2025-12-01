@@ -7,7 +7,7 @@ class SessionManager {
   static const String _keyLeaderId = 'leaderId';
   static const String _keyIsLoggedIn = 'isLoggedIn';
 
-  // ✅ Simpan sesi login
+  // Simpan sesi login
   static Future<void> saveUserSession({
     required String username,
     required int leaderId,
@@ -18,7 +18,7 @@ class SessionManager {
     await prefs.setBool(_keyIsLoggedIn, true);
   }
 
-  // ✅ Ambil sesi user
+  // Ambil sesi user
   static Future<Map<String, dynamic>?> getUserSession() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool(_keyIsLoggedIn) ?? false;
@@ -30,13 +30,13 @@ class SessionManager {
     };
   }
 
-  // ✅ Hapus sesi (logout)
+  // Hapus sesi (logout)
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
 
-  // ✅ Logout user (hapus sesi)
+  // Logout user (hapus sesi)
   static Future<void> logoutUser() async {
     await clearSession();  // Using the correct method name
   }

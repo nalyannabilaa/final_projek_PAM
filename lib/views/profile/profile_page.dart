@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import '../../services/local_storage.dart';
 import '../../services/session_manager.dart';
 import '../../models/user_model.dart';
@@ -38,8 +40,6 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isLoading = true);
 
     try {
-      // SessionManager.getUserSession() returns a Map<String, dynamic>?
-      // so we need to extract the 'username' field from that map.
       final session = await SessionManager.getUserSession();
       final username = session?['username'] as String?;
       if (username != null && username.isNotEmpty) {
@@ -58,6 +58,13 @@ class _ProfilePageState extends State<ProfilePage> {
           setState(() {
             _username = username;
             _currentUser = user;
+
+            if (user.avatarPath != null && user.avatarPath!.isNotEmpty) {
+              final file = File(user.avatarPath!);
+              if (file.existsSync()) {
+                _avatarImage = file;
+              }
+            }
           });
         }
       }
@@ -74,7 +81,30 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  /// Memilih gambar dari galeri untuk avatar
+  Future<String?> _saveImagePermanently(String sourcePath) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final avatarsDir = Directory('${appDir.path}/avatars');
+
+      if (!await avatarsDir.exists()) {
+        await avatarsDir.create(recursive: true);
+      }
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = path.extension(sourcePath);
+      final fileName = '${_currentUser!.username}_$timestamp$extension';
+      final savedPath = '${avatarsDir.path}/$fileName';
+
+      // Copy file ke lokasi permanen
+      final sourceFile = File(sourcePath);
+      await sourceFile.copy(savedPath);
+
+      return savedPath;
+    } catch (e) {
+      print('Error saving image: $e');
+      return null;
+    }
+  }
+
   Future<void> _pickImage() async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -85,16 +115,37 @@ class _ProfilePageState extends State<ProfilePage> {
       );
 
       if (pickedFile != null) {
-        setState(() {
-          _avatarImage = File(pickedFile.path);
-        });
 
-        if (mounted) {
-          CustomSnackbar.show(
-            context,
-            "Foto profil berhasil diubah!",
-            type: SnackbarType.success,
+        final savedPath = await _saveImagePermanently(pickedFile.path);
+
+        if (savedPath != null) {
+          final result = await LocalStorageService.updateUserAvatar(
+            username: _currentUser!.username,
+            avatarPath: savedPath,
           );
+
+          if (result['success']) {
+            setState(() {
+              _avatarImage = File(savedPath);
+              _currentUser = result['user'];
+            });
+
+            if (mounted) {
+              CustomSnackbar.show(
+                context,
+                "Foto profil berhasil diubah!",
+                type: SnackbarType.success,
+              );
+            }
+          } else {
+            if (mounted) {
+              CustomSnackbar.show(
+                context,
+                result['message'] ?? "Gagal menyimpan foto profil",
+                type: SnackbarType.error,
+              );
+            }
+          }
         }
       }
     } catch (e) {
@@ -227,19 +278,22 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 _buildInfoCard(
                   icon: Icons.person,
-                  label: 'Username',
+                  label: 'Username', 
+                  color: const Color.fromARGB(255, 255, 255, 255),//XXX
                   value: _currentUser!.username,
                 ),
                 const SizedBox(height: 15),
                 _buildInfoCard(
                   icon: Icons.email,
                   label: 'Email',
+                  color: const Color.fromARGB(255, 255, 255, 255),
                   value: _currentUser!.email,
                 ),
                 const SizedBox(height: 15),
                 _buildInfoCard(
                   icon: Icons.calendar_today,
                   label: 'Bergabung',
+                  color: const Color.fromARGB(255, 255, 255, 255),
                   value: _formatDate(_currentUser!.createdAt),
                 ),
 
@@ -250,6 +304,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: Icons.edit,
                   label: 'Edit Profil',
                   color: const Color(0xFFE3DE61),
+                  colorcard: const Color.fromARGB(255, 255, 255, 255), //XX
                   onTap: () async {
                     final result = await Navigator.push(
                       context,
@@ -271,6 +326,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: Icons.info,
                   label: 'About Us',
                   color: const Color(0xFF6B9080),
+                  colorcard: Colors.white,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -285,6 +341,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: Icons.logout,
                   label: 'Logout',
                   color: const Color(0xFFD32F2F),
+                  colorcard: const Color.fromARGB(255, 255, 255, 255),
                   onTap: _logout,
                 ),
 
@@ -397,11 +454,12 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     required String label,
     required String value,
+    required Color color,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: color,
         borderRadius: BorderRadius.circular(15),
         boxShadow: const [
           BoxShadow(
@@ -456,6 +514,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     required String label,
     required Color color,
+    required Color colorcard,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -464,7 +523,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorcard,
           borderRadius: BorderRadius.circular(15),
           boxShadow: const [
             BoxShadow(
